@@ -65,7 +65,6 @@ class CalculateUseCase {
         return bracketsResolvedInputs
     }
 
-
     private fun performPercentageOperation(inputs: List<CalculatorInput>): List<CalculatorInput> {
         val percentageUpdatedInputs = mutableListOf<CalculatorInput>()
         var i = 0

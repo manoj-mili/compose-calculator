@@ -14,7 +14,6 @@ import com.mili.simplecalculator.screens.CalculatorViewModel
 import com.mili.simplecalculator.ui.theme.SimpleCalculatorTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-
 class MainActivity : ComponentActivity() {
 
     private val viewModel: CalculatorViewModel by viewModel()
@@ -28,7 +27,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val uiState by viewModel.uiState.collectAsState()
-                    CalculatorScreen(uiState, viewModel::onButtonClicked)
+                    CalculatorScreen(uiState, viewModel)
                 }
             }
         }

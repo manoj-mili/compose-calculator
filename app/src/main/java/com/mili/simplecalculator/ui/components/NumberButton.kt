@@ -21,7 +21,6 @@ fun NumberButton(
     color: Color,
     onClick: (CalculatorInput.NumberInput) -> Unit
 ) {
-
     Button(
         onClick = { onClick.invoke(numberOption) },
         modifier = modifier

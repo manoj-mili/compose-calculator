@@ -6,7 +6,6 @@ import com.mili.simplecalculator.domain.model.Operation.EqualTo
 import com.mili.simplecalculator.domain.model.Operation.Minus
 import com.mili.simplecalculator.domain.model.Operation.Multiply
 import com.mili.simplecalculator.domain.model.Operation.Plus
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 

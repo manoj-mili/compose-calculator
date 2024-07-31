@@ -1,21 +1,24 @@
 package com.mili.simplecalculator.screens
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.mili.simplecalculator.domain.model.BracketType
 import com.mili.simplecalculator.domain.model.CalculatorInput
 import com.mili.simplecalculator.domain.model.Clear
 import com.mili.simplecalculator.domain.model.Operation
 import com.mili.simplecalculator.domain.usecase.CalculateUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.lang.IllegalStateException
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.pow
 
-class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : ViewModel() {
+class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : ViewModel(), CalculatorUiEvent {
 
     private val _uiState: MutableStateFlow<CalculatorUiState> =
         MutableStateFlow(CalculatorUiState.init)
@@ -28,21 +31,59 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
 
     private val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
 
+    override fun onCalculatorButtonClicked(input: CalculatorInput) {
+        viewModelScope.launch(Dispatchers.Default) {
+            if (isInvalidInput(input).not()) {
+                checkAndUpdateUserInputList(input)
+                applyCalculation(input)
+            }
+        }
+    }
 
-    fun onButtonClicked(input: CalculatorInput) {
-        if (isInvalidInput(input)) return
-        checkAndUpdateUserInputList(input)
-        formatCalculatorInput(input)
+    private fun applyCalculation(input: CalculatorInput) {
+        val lastInput = userCalculatorInputs.lastOrNull()
+        val firstInput = userCalculatorInputs.firstOrNull()
+        when {
+            userCalculatorInputs.size > 1 && firstInput is CalculatorInput.NumberInput && lastInput is CalculatorInput.NumberInput -> {
+                // there is still close bracket pending so avoid calculation
+                if (currentBracketType == BracketType.Open) {
+                    formatCalculatorInput(input)
+                } else {
+                    calculateUseCase.invoke(
+                        userInputs = userCalculatorInputs
+                    ).also {
+                        formatInput(it)
+                    }
+                }
+            }
+
+            firstInput is CalculatorInput.NumberInput && currentBracketType == null -> {
+                calculateUseCase.invoke(
+                    userInputs = userCalculatorInputs
+                ).also {
+                    formatInput(it)
+                }
+            }
+
+            firstInput is CalculatorInput.BracketInput && currentBracketType == null -> {
+                calculateUseCase.invoke(
+                    userInputs = userCalculatorInputs
+                ).also {
+                    formatInput(it)
+                }
+            }
+
+            else -> formatCalculatorInput(input = input)
+        }
     }
 
     private fun formatCalculatorInput(input: CalculatorInput) {
         when (input) {
-            is CalculatorInput.OperatorInput -> input.handleOperatorInput()
+            is CalculatorInput.OperatorInput,
             is CalculatorInput.BracketInput,
             is CalculatorInput.NumberInput,
-            is CalculatorInput.SeparatorInput -> formatInput()
-
-            is CalculatorInput.ClearInput -> input.handleClearOption()
+            is CalculatorInput.ClearInput,
+            is CalculatorInput.SeparatorInput -> formatInput(calculationResult = "")
         }
     }
 
@@ -53,8 +94,10 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
         val isInputNotBracket = (input is CalculatorInput.BracketInput).not()
         val lastInputOption = userCalculatorInputs.lastOrNull()
         val isLastInputBracket = (lastInputOption is CalculatorInput.BracketInput)
-        return ((lastInputOption?.isOperatorInput() == true && input.isOperatorInput() && isInputNotBracket && isLastInputBracket)
-                || (lastInputOption?.isSeparatorInput() == true && input.isSeparatorInput()))
+        return (
+            (lastInputOption?.isOperatorInput() == true && input.isOperatorInput() && isInputNotBracket && isLastInputBracket) ||
+                (lastInputOption?.isSeparatorInput() == true && input.isSeparatorInput())
+            )
     }
 
     private fun checkAndUpdateUserInputList(input: CalculatorInput) {
@@ -62,6 +105,17 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
             is CalculatorInput.ClearInput -> handleClearInput(input = input)
             is CalculatorInput.NumberInput -> handleNumberInput(input = input)
             is CalculatorInput.BracketInput -> handleBracketInput(input)
+            is CalculatorInput.OperatorInput -> {
+                if (input.operation != Operation.EqualTo) {
+                    userCalculatorInputs.add(input)
+                } else {
+                    calculateUseCase(userInputs = userCalculatorInputs)
+                        .also {
+                            formatInput(it)
+                        }
+                }
+            }
+
             else -> userCalculatorInputs.add(input)
         }
     }
@@ -75,14 +129,13 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
 
             is CalculatorInput.NumberInput -> {
                 if (currentBracketType == null) {
-                    onButtonClicked(CalculatorInput.OperatorInput(operation = Operation.Multiply))
+                    userCalculatorInputs.add(CalculatorInput.OperatorInput(operation = Operation.Multiply))
                 }
             }
 
             is CalculatorInput.OperatorInput,
             null -> Unit
         }
-
 
         when (input.bracketType) {
             BracketType.Open,
@@ -134,19 +187,25 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
     }
 
     private fun updateLastNumberCorrectly(
-        input: CalculatorInput.NumberInput,
+        input: CalculatorInput.NumberInput
     ) {
         val number = input.number
         val numberSplit = number.toString().split(".")
         val decimalPlaces = (numberSplit.getOrNull(1) ?: "").length
         val finalNumber = if (decimalPlaces > 0 && numberSplit[1] == "0") {
             val updatedNumber = numberSplit[0].dropLast(1)
-            if (updatedNumber.isEmpty()) return
-            else updatedNumber.toDouble()
+            if (updatedNumber.isEmpty()) {
+                return
+            } else {
+                updatedNumber.toDouble()
+            }
         } else {
-            val updatedNumber = numberSplit[1].dropLast(n=1)
-            if (updatedNumber.isEmpty()) numberSplit[0].toDouble()
-            else (numberSplit[0].plus(".").plus(updatedNumber)).toDouble()
+            val updatedNumber = numberSplit[1].dropLast(n = 1)
+            if (updatedNumber.isEmpty()) {
+                numberSplit[0].toDouble()
+            } else {
+                (numberSplit[0].plus(".").plus(updatedNumber)).toDouble()
+            }
         }
         val updatedLastIndexInput = input.copy(number = finalNumber)
         userCalculatorInputs.add(updatedLastIndexInput)
@@ -158,7 +217,7 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
             is CalculatorInput.SeparatorInput -> appendAfterSeparator(input)
             is CalculatorInput.BracketInput -> {
                 if (lastInput.bracketType == BracketType.Close) {
-                    onButtonClicked(CalculatorInput.OperatorInput(operation = Operation.Multiply))
+                    userCalculatorInputs.add(CalculatorInput.OperatorInput(operation = Operation.Multiply))
                 }
                 userCalculatorInputs.add(input)
             }
@@ -200,40 +259,7 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
         userCalculatorInputs.add(updatedLastIndexInput)
     }
 
-    private fun CalculatorInput.ClearInput.handleClearOption() {
-        var result = _uiState.value.result
-        if (clear == Clear.AllClear || userCalculatorInputs.isEmpty()) {
-            result = ""
-        }
-        formatInput(result)
-    }
-
-    private fun CalculatorInput.OperatorInput.handleOperatorInput() {
-        when (operation) {
-            Operation.Plus,
-            Operation.Minus,
-            Operation.Multiply,
-            Operation.Divide,
-            Operation.Percentage -> {
-                operation.operator
-            }
-
-            Operation.EqualTo -> {
-                calculateUseCase(userInputs = userCalculatorInputs)
-            }
-        }.also {
-            var result = _uiState.value.result
-            when {
-                operation == Operation.EqualTo -> {
-                    userCalculatorInputs.removeLast()
-                    result = it
-                }
-            }
-            formatInput(result)
-        }
-    }
-
-    private fun formatInput(calculationResult: String? = null) {
+    private fun formatInput(calculationResult: String) {
         val formattedInput = StringBuilder("")
         userCalculatorInputs.forEach {
             when (it) {
@@ -269,7 +295,7 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
         _uiState.update {
             it.copy(
                 input = formattedInput.toString(),
-                result = calculationResult ?: it.result
+                result = calculationResult
             )
         }
     }

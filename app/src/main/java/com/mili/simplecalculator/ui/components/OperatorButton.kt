@@ -15,8 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mili.simplecalculator.domain.model.Operation
 import com.mili.simplecalculator.domain.model.CalculatorInput
+import com.mili.simplecalculator.domain.model.Operation
 import com.mili.simplecalculator.ui.theme.mediumEmphasisButtonLightTheme
 
 @Composable
@@ -24,7 +24,7 @@ fun OperatorButton(
     operatorOption: CalculatorInput.OperatorInput,
     modifier: Modifier = Modifier,
     color: Color,
-    onClick: (CalculatorInput.OperatorInput) -> Unit,
+    onClick: (CalculatorInput.OperatorInput) -> Unit
 ) {
     Button(
         onClick = { onClick.invoke(operatorOption) },
@@ -37,23 +37,24 @@ fun OperatorButton(
         ),
         shape = RoundedCornerShape(24.dp)
     ) {
-            Text(
-                text = operatorOption.operation.operator,
-                fontSize = 22.sp,
-                style = MaterialTheme.typography.displayMedium
-            )
+        Text(
+            text = operatorOption.operation.operator,
+            fontSize = 22.sp,
+            style = MaterialTheme.typography.displayMedium
+        )
     }
 }
-
 
 @Composable
 @Preview
 fun ActionButtonPreview() {
     OperatorButton(
-        operatorOption = CalculatorInput.OperatorInput(Operation.Multiply), modifier = Modifier
+        operatorOption = CalculatorInput.OperatorInput(Operation.Multiply),
+        modifier = Modifier
             .padding(4.dp)
-            .wrapContentSize(), color = mediumEmphasisButtonLightTheme, {
-
+            .wrapContentSize(),
+        color = mediumEmphasisButtonLightTheme,
+        {
         }
     )
 }

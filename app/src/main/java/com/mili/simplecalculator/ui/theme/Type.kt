@@ -13,8 +13,9 @@ val fontFamily = FontFamily(
     Font(R.font.worksans_regular, FontWeight.Normal),
     Font(R.font.worksans_medium, FontWeight.Medium),
     Font(R.font.worksans_semibold, FontWeight.SemiBold),
-    Font(R.font.worksans_bold, FontWeight.Bold),
+    Font(R.font.worksans_bold, FontWeight.Bold)
 )
+
 // Set of Material typography styles to start with
 val Typography = Typography(
     displayMedium = TextStyle(
@@ -23,5 +24,5 @@ val Typography = Typography(
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
-    ),
+    )
 )

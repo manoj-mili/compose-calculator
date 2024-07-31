@@ -39,10 +39,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mili.simplecalculator.domain.model.CalculatorInput
-import com.mili.simplecalculator.ui.components.OperatorButton
 import com.mili.simplecalculator.ui.components.BracketButton
 import com.mili.simplecalculator.ui.components.ClearButton
 import com.mili.simplecalculator.ui.components.NumberButton
+import com.mili.simplecalculator.ui.components.OperatorButton
 import com.mili.simplecalculator.ui.components.SeparatorButton
 import com.mili.simplecalculator.ui.theme.black
 import com.mili.simplecalculator.ui.theme.fontFamily
@@ -54,7 +54,7 @@ import com.mili.simplecalculator.ui.theme.purple
 import com.mili.simplecalculator.ui.theme.white
 
 @Composable
-fun CalculatorScreen(uiState: CalculatorUiState, onClick: (CalculatorInput) -> Unit) {
+fun CalculatorScreen(uiState: CalculatorUiState, uiEvent: CalculatorUiEvent) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.wrapContentSize()) {
             Column(
@@ -67,7 +67,7 @@ fun CalculatorScreen(uiState: CalculatorUiState, onClick: (CalculatorInput) -> U
                         value = uiState.input,
                         onValueChange = {
                             /**
-                            no-op as the input is passed to vm to process
+                             no-op as the input is passed to vm to process
                              **/
                         },
                         maxLines = 2,
@@ -93,7 +93,7 @@ fun CalculatorScreen(uiState: CalculatorUiState, onClick: (CalculatorInput) -> U
                             } else {
                                 mediumEmphasisButtonLightTheme
                             }
-                        ),
+                        )
                     )
                 }
 
@@ -146,9 +146,9 @@ fun CalculatorScreen(uiState: CalculatorUiState, onClick: (CalculatorInput) -> U
                             modifier = Modifier
                                 .wrapContentSize()
                                 .padding(8.dp),
-                            color = color,
+                            color = color
                         ) { option ->
-                            onClick.invoke(option)
+                            uiEvent.onCalculatorButtonClicked(option)
                         }
                     }
 
@@ -158,20 +158,21 @@ fun CalculatorScreen(uiState: CalculatorUiState, onClick: (CalculatorInput) -> U
                             modifier = Modifier
                                 .wrapContentSize()
                                 .padding(8.dp),
-                            color = color,
+                            color = color
                         ) { option ->
-                            onClick.invoke(option)
+                            uiEvent.onCalculatorButtonClicked(option)
                         }
                     }
 
                     is CalculatorInput.NumberInput -> {
                         NumberButton(
-                            numberOption = item, modifier = Modifier
+                            numberOption = item,
+                            modifier = Modifier
                                 .wrapContentSize()
                                 .padding(8.dp),
                             color = color
                         ) { option ->
-                            onClick.invoke(option)
+                            uiEvent.onCalculatorButtonClicked(option)
                         }
                     }
 
@@ -183,7 +184,7 @@ fun CalculatorScreen(uiState: CalculatorUiState, onClick: (CalculatorInput) -> U
                                 .padding(8.dp),
                             color = color
                         ) { option ->
-                            onClick.invoke(option)
+                            uiEvent.onCalculatorButtonClicked(option)
                         }
                     }
 
@@ -195,7 +196,7 @@ fun CalculatorScreen(uiState: CalculatorUiState, onClick: (CalculatorInput) -> U
                                 .padding(8.dp),
                             color = color
                         ) { option ->
-                            onClick.invoke(option)
+                            uiEvent.onCalculatorButtonClicked(option)
                         }
                     }
                 }
@@ -234,7 +235,6 @@ fun CalculatorScreenPreview() {
         input = "343265324",
         result = "4567"
     )
-    CalculatorScreen(uiState = uiState, {
-
+    CalculatorScreen(uiState = uiState, uiEvent = {
     })
 }

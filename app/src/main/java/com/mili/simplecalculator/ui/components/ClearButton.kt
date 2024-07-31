@@ -1,6 +1,5 @@
 package com.mili.simplecalculator.ui.components
 
-
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +23,7 @@ fun ClearButton(
     operatorOption: CalculatorInput.ClearInput,
     modifier: Modifier = Modifier,
     color: Color,
-    onClick: (CalculatorInput.ClearInput) -> Unit,
+    onClick: (CalculatorInput.ClearInput) -> Unit
 ) {
     Button(
         onClick = { onClick.invoke(operatorOption) },
@@ -42,11 +41,12 @@ fun ClearButton(
                 painter = painterResource(id = R.drawable.outline_backspace_24),
                 contentDescription = null
             )
-        } else
+        } else {
             Text(
                 text = operatorOption.clear.symbol,
                 fontSize = 22.sp,
                 style = MaterialTheme.typography.displayMedium
             )
+        }
     }
 }

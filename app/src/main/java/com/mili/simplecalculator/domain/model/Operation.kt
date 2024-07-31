@@ -6,5 +6,5 @@ enum class Operation(val operator: String) {
     Multiply("x"),
     Divide("/"),
     EqualTo("="),
-    Percentage("%"),
+    Percentage("%")
 }

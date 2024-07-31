@@ -5,7 +5,7 @@ import com.mili.simplecalculator.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
-class CalculatorApp: Application() {
+class CalculatorApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
