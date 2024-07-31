@@ -57,22 +57,6 @@ class CalculatorViewModel(private val calculateUseCase: CalculateUseCase) : View
                 }
             }
 
-            firstInput is CalculatorInput.NumberInput && currentBracketType == null -> {
-                calculateUseCase.invoke(
-                    userInputs = userCalculatorInputs
-                ).also {
-                    formatInput(it)
-                }
-            }
-
-            firstInput is CalculatorInput.BracketInput && currentBracketType == null -> {
-                calculateUseCase.invoke(
-                    userInputs = userCalculatorInputs
-                ).also {
-                    formatInput(it)
-                }
-            }
-
             else -> formatCalculatorInput(input = input)
         }
     }
